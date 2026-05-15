@@ -1,0 +1,68 @@
+name: Build Janus .deb
+on:
+  workflow_dispatch:
+    inputs:
+      janus_version:
+        description: Janus Gateway version tag
+        required: true
+        default: v1.2.4
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm
+      - run: mkdir -p output
+      - name: Build
+        run: |
+          docker run --rm --platform linux/arm/v7 \
+            -e JANUS_VERSION="${{ inputs.janus_version }}" \
+            -v ${{ github.workspace }}/output:/output \
+            debian:trixie bash -exc '
+              export DEBIAN_FRONTEND=noninteractive
+              JANUS_VERSION_NUM="${JANUS_VERSION#v}"
+              apt-get update
+              apt-get install -y --no-install-recommends \
+                build-essential pkg-config git ca-certificates \
+                automake autoconf libtool gengetopt \
+                libmicrohttpd-dev libjansson-dev libssl-dev \
+                libsrtp2-dev libglib2.0-dev libnice-dev \
+                libwebsockets-dev libconfig-dev libcurl4-openssl-dev \
+                libopus-dev libogg-dev libusrsctp-dev
+              cd /tmp
+              git clone --depth 1 --branch ${JANUS_VERSION} https://github.com/meetecho/janus-gateway.git
+              cd janus-gateway
+              sh autogen.sh
+              ./configure --prefix=/usr --disable-docs --disable-rabbitmq --disable-mqtt --disable-nanomsg --disable-unix-sockets --enable-websockets --enable-turn-rest-api
+              make -j$(nproc)
+              make DESTDIR=/tmp/janus-staging install
+              PKG_DIR="/tmp/janus_${JANUS_VERSION_NUM}_armhf"
+              mkdir -p "${PKG_DIR}/DEBIAN"
+              cp -a /tmp/janus-staging/usr "${PKG_DIR}/"
+              rm -rf "${PKG_DIR}/usr/share/doc" "${PKG_DIR}/usr/share/man" "${PKG_DIR}/usr/include"
+              mkdir -p /tmp/dpkg-work/debian
+              printf "Source: janus\nSection: net\nPriority: optional\nMaintainer: Yumi-Lab <contact@yumi-lab.com>\n\nPackage: janus\nArchitecture: armhf\nDescription: Janus WebRTC Server\n" > /tmp/dpkg-work/debian/control
+              cd /tmp/dpkg-work
+              DEPS=$(dpkg-shlibdeps -O ${PKG_DIR}/usr/bin/janus ${PKG_DIR}/usr/lib/janus/plugins/*.so ${PKG_DIR}/usr/lib/janus/transports/*.so 2>&1 | grep "^shlibs:Depends=" | sed "s/^shlibs:Depends=//") || true
+              cd /tmp
+              if [ -z "$DEPS" ]; then
+                DEPS="libglib2.0-0t64, libjansson4, libnice10, libssl3t64, libsrtp2-1, libwebsockets19t64, libmicrohttpd12t64, libconfig11, libcurl4t64, libusrsctp2"
+              fi
+              printf "Package: janus\nVersion: ${JANUS_VERSION_NUM}\nSection: net\nPriority: optional\nArchitecture: armhf\nDepends: ${DEPS}\nProvides: janus-gateway\nMaintainer: Yumi-Lab <contact@yumi-lab.com>\nHomepage: https://github.com/meetecho/janus-gateway\nDescription: Janus WebRTC Server for Trixie armhf\n Pre-built from janus-gateway upstream.\n" > "${PKG_DIR}/DEBIAN/control"
+              dpkg-deb --build --root-owner-group "${PKG_DIR}"
+              DEB_FILE="/tmp/janus_${JANUS_VERSION_NUM}_armhf.deb"
+              cp "${DEB_FILE}" /output/
+              dpkg-deb --info "${DEB_FILE}"
+            '
+      - uses: actions/upload-artifact@v4
+        with:
+          name: janus-armhf-trixie
+          path: output/*.deb
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: janus-${{ inputs.janus_version }}-trixie-armhf
+          name: Janus ${{ inputs.janus_version }} Trixie armhf
+          body: Pre-compiled Janus WebRTC Gateway for Debian 13 Trixie armhf
+          files: output/*.deb

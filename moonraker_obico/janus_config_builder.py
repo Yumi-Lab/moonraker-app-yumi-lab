@@ -128,9 +128,9 @@ general: {
         admin_secret = "janusoverlord"  # String that all Janus requests must contain
 }}
 nat: {{
-        turn_server = "turn.obico.io"
+        turn_server = "app.yumi-lab.com"
         turn_port = 80
-        turn_type = "tcp"
+        turn_type = "udp"
         turn_user = "{auth_token}"
         turn_pwd = "{auth_token}"
 """.format(auth_token=auth_token))

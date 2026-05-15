@@ -152,7 +152,7 @@ class WebcamStreamer:
         except JanusNotFoundException as e:
             streaming_error = str(e)
             _logger.warning(f'{e} Webcam is now streaming in 0.1FPS.')
-            self.send_streaming_failed_event(streaming_error, info_url='https://obico.io/docs/user-guides/webcam-install-janus/')
+            self.send_streaming_failed_event(streaming_error, info_url='https://wiki.yumi-lab.com/')
             self.shutdown()
             # When Janus is not found, we will stream the primary camera in 0.1FPS. This provides a better user experience, and is compatible with old mobile app versions
             normalized_webcams = [self.normalized_webcam_dict(webcam) for webcam in self.webcams if webcam.is_primary_camera]
@@ -174,10 +174,10 @@ class WebcamStreamer:
         self.close_all_mjpeg_socks()
         return ('ok', None)  # return value expected for a passthru target
 
-    def send_streaming_failed_event(self, error=None, info_url='https://obico.io/docs/user-guides/moonraker-obico/webcam/'):
+    def send_streaming_failed_event(self, error=None, info_url='https://wiki.yumi-lab.com/'):
         self.server_conn.post_printer_event_to_server(
-            'moonraker-obico: Webcam Streaming Failed',
-            error if error else f'Make sure the webcam is properly configured in moonraker-obico.cfg.',
+            'moonraker-yumi: Webcam Streaming Failed',
+            error if error else f'Make sure the webcam is properly configured in moonraker-yumi.cfg.',
             event_class='WARNING',
             info_url=info_url
         )

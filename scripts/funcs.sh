@@ -39,18 +39,18 @@ create_config() {
     print_header " Obico Server URL "
     cat <<EOF
 
-Now tell us what Obico Server you want to link your printer to.
-You can use a self-hosted Obico Server or the Obico Cloud. For more information, please visit: https://www.obico.io.
+Now tell us what Yumi Server you want to link your printer to.
+For more information, please visit: https://wiki.yumi-lab.com.
 For self-hosted server, specify "http://server_ip:port". For instance, http://192.168.0.5:3334.
 
 EOF
     if [ -n "$CREALITY_VARIANT" ]; then
-        printf "The Obico Server. Press 'enter' to accept the default [https://app.obico.io]: "
+        printf "The Obico Server. Press 'enter' to accept the default [https://app.yumi-lab.com]: "
         read user_input
         # If user_input is empty, assign the default value
-        : ${user_input:="https://app.obico.io"}
+        : ${user_input:="https://app.yumi-lab.com"}
     else
-        read -p "The Obico Server (Don't change unless you are linking to a self-hosted Obico Server): " -e -i "https://app.obico.io" user_input
+        read -p "The Obico Server (Don't change unless you are linking to a self-hosted Obico Server): " -e -i "https://app.yumi-lab.com" user_input
     fi
     echo ""
     OBICO_SERVER="${user_input%/}"
@@ -103,16 +103,14 @@ recreate_update_file() {
 type: git_repo
 path: ${OBICO_DIR}
 origin: ${OBICO_REPO}
-env: ${OBICO_ENV}/bin/python
-requirements: requirements.txt
 install_script: install.sh
-managed_services:
-  ${OBICO_SERVICE_NAME}
+is_system_service: False
+managed_services: klipper
 EOF
 
-  if ! grep -q "include moonraker-obico-update.cfg" "${MOONRAKER_CONFIG_FILE}" ; then
+  if ! grep -q "include moonraker-yumi-update.cfg" "${MOONRAKER_CONFIG_FILE}" ; then
     echo "" >> "${MOONRAKER_CONFIG_FILE}"
-    echo "[include moonraker-obico-update.cfg]" >> "${MOONRAKER_CONFIG_FILE}"
+    echo "[include moonraker-yumi-update.cfg]" >> "${MOONRAKER_CONFIG_FILE}"
 	fi
 
   "${OBICO_DIR}/scripts/ensure_include_cfgs.sh" "${MOONRAKER_CONF_DIR}/printer.cfg"
@@ -120,9 +118,9 @@ EOF
 
 
 ensure_venv() {
-  OBICO_ENV="${OBICO_DIR}/../moonraker-obico-env"
+  OBICO_ENV="${OBICO_DIR}/../moonraker-yumi-env"
   if [ ! -f "${OBICO_ENV}/bin/activate" ] ; then
-    report_status "Creating python virtual environment for moonraker-obico..."
+    report_status "Creating python virtual environment for moonraker-yumi..."
     mkdir -p "${OBICO_ENV}"
     if is_k1; then
       virtualenv -p /opt/bin/python3 --system-site-packages "${OBICO_ENV}"
@@ -215,9 +213,9 @@ need_help() {
   cat <<EOF
 Need help? Stop by:
 
-- The Obico's help docs: https://www.obico.io/help/
-- The Moonraker-Obico support channel: https://www.obico.io/discord-obico-klipper
-- The Obico discord community: https://www.obico.io/discord/
+- The Obico's help docs: https://wiki.yumi-lab.com/
+- The Moonraker-Obico support channel: https://discord.gg/yumi-lab
+- The Obico discord community: https://discord.gg/yumi-lab
 
 EOF
 }

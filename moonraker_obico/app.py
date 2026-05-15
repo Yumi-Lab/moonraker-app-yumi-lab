@@ -92,7 +92,7 @@ class App(object):
         setup_logging(config.logging, log_path=args.log_path, debug=args.debug)
 
         config_dict = {section: dict(config._config.items(section)) for section in config._config.sections()}
-        _logger.info(f'moonraker-obico config:\n{config_dict}')
+        _logger.info(f'moonraker-yumi config:\n{config_dict}')
 
         if args.dev_mode:
             self.moonrakerconn = StubMoonrakerConn()
@@ -120,7 +120,7 @@ class App(object):
         )
 
         _cfg = self.model.config._config
-        _logger.debug(f'moonraker-obico configurations: { {section: dict(_cfg[section]) for section in _cfg.sections()} }')
+        _logger.debug(f'moonraker-yumi configurations: { {section: dict(_cfg[section]) for section in _cfg.sections()} }')
 
         self.server_conn = ServerConn(self.model.config, self.model.printer_state, self.process_server_msg, self.sentry)
         self.jpeg_poster = JpegPoster(self.model, self.server_conn, self.sentry)
@@ -191,7 +191,7 @@ class App(object):
 
     # TODO: This doesn't work as ffmpeg seems to mess with signals as well
     def interrupted(self, signum, frame):
-        print('Cleaning up moonraker-obico service... Press Ctrl-C again to quit immediately')
+        print('Cleaning up moonraker-yumi service... Press Ctrl-C again to quit immediately')
         self.stop()
 
         global _default_int_handler, _default_term_handler
@@ -338,7 +338,7 @@ class App(object):
 
         if printer_state.current_print_ts is None:
             # This should cover all the edge cases when there is an active job, but current_print_ts is not set,
-            # e.g., moonraker-obico is restarted in the middle of a print
+            # e.g., moonraker-yumi is restarted in the middle of a print
             if printer_state.has_active_job():
                 self.set_current_print(printer_state)
             else:
@@ -433,7 +433,7 @@ class App(object):
         if self.model and self.model.config and self.model.config._config:
             self.model.config._config.remove_option('server', 'auth_token')
             self.model.config.write()
-            subprocess.call(["systemctl", "restart", "moonraker-obico"])
+            subprocess.call(["systemctl", "restart", "moonraker-yumi"])
         else:
             _logger.warning('Not linked or not connected to server. Ignoring re-linking request.')
 

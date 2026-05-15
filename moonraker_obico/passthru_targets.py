@@ -43,7 +43,7 @@ class PassthruExecutor:
             func = getattr(target, passthru['func'], None)
             ret_value, error = func(*(passthru.get("args", [])), **(passthru.get("kwargs", {})))
         except (AttributeError, TypeError):
-            error = 'Request not supported. Please make sure moonraker-obico is updated to the latest version. If moonraker-obico is already up to date and you still see this error, please contact Obico support at support@obico.io'
+            error = 'Request not supported. Please make sure moonraker-yumi is updated to the latest version.'
         except Exception as e:
             error = str(e)
             self.sentry.captureException()

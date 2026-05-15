@@ -14,8 +14,8 @@ MOONRAKER_CONFIG_FILE="${MOONRAKER_CONF_DIR}/moonraker.conf"
 MOONRAKER_LOG_DIR="${HOME}/printer_data/logs"
 MOONRAKER_HOST="127.0.0.1"
 MOONRAKER_PORT="7125"
-OBICO_SERVICE_NAME="moonraker-obico"
-OBICO_REPO="https://github.com/TheSpaghettiDetective/moonraker-obico.git"
+OBICO_SERVICE_NAME="moonraker-yumi"
+OBICO_REPO="https://github.com/Yumi-Lab/moonraker-app-yumi-lab.git"
 CURRENT_USER=${USER}
 OVERWRITE_CONFIG="n"
 SKIP_LINKING="n"
@@ -26,23 +26,23 @@ usage() {
     echo ""
   fi
   cat <<EOF
-Usage: $0 <[global_options]>   # Interactive installation to get moonraker-obico set up. Recommended if you have only 1 printer
+Usage: $0 <[global_options]>   # Interactive installation to get moonraker-yumi set up. Recommended if you have only 1 printer
        $0 <[global_options]> <[moonraker_setting_options]>   # Recommended for multiple-printer setup
 
 Global options:
-          -f   Reset moonraker-obico config file, including removing the linked printer
+          -f   Reset moonraker-yumi config file, including removing the linked printer
           -L   Skip the step to link to the Obico server.
           -u   Show uninstallation instructions
           -d   Show debugging info
-          -U   Update moonraker-obico to the latest version
+          -U   Update moonraker-yumi to the latest version
 
 Moonraker setting options (${yellow}if any of them are specified, all need to be specified${default}):
           -n   The "name" that will be appended to the end of the system service name and log file. Useful only in multi-printer setup.
           -H   Moonraker server hostname or ip address
           -p   Moonraker server port
           -C   Moonraker config file path
-          -l   The directory for moonraker-obico log files, which are rotated based on size.
-          -S   The URL of the obico server to link the printer to, e.g., https://app.obico.io
+          -l   The directory for moonraker-yumi log files, which are rotated based on size.
+          -S   The URL of the Yumi server to link the printer to, e.g., https://app.yumi-lab.com
 EOF
 }
 
@@ -108,11 +108,11 @@ ensure_writtable() {
 recreate_service() {
   sudo systemctl stop "${OBICO_SERVICE_NAME}" 2>/dev/null || true
 
-  report_status "Creating moonraker-obico systemctl service... You may need to enter password to run sudo."
+  report_status "Creating moonraker-yumi systemctl service... You may need to enter password to run sudo."
   sudo /bin/sh -c "cat > /etc/systemd/system/${OBICO_SERVICE_NAME}.service" <<EOF
-#Systemd service file for moonraker-obico
+#Systemd service file for moonraker-yumi
 [Unit]
-Description=Moonraker-Obico
+Description=Moonraker-Yumi
 After=network-online.target moonraker.service
 
 [Install]
@@ -140,7 +140,7 @@ update() {
 uninstall() {
   cat <<EOF
 
-To uninstall Moonraker-Obico, please
+To uninstall Moonraker-Yumi, please
 
 1. Run these commands:
 
@@ -151,8 +151,8 @@ sudo systemctl disable "${OBICO_SERVICE_NAME}"
 sudo rm "/etc/systemd/system/${OBICO_SERVICE_NAME}.service"
 sudo systemctl daemon-reload
 sudo systemctl reset-failed
-rm -rf ~/moonraker-obico
-rm -rf ~/moonraker-obico-env
+rm -rf ~/moonraker-app-yumi-lab
+rm -rf ~/moonraker-yumi-env
 
 -------------------------
 
@@ -164,7 +164,7 @@ rm -rf ~/moonraker-obico-env
 
 3. Remove this line in "moonraker.conf":
 
-[include moonraker-obico-update.cfg]
+[include moonraker-yumi-update.cfg]
 
 
 EOF
@@ -235,10 +235,10 @@ ensure_writtable "${MOONRAKER_CONF_DIR}"
 ensure_writtable "${MOONRAKER_CONFIG_FILE}"
 ensure_writtable "${MOONRAKER_LOG_DIR}"
 
-[ -z "${OBICO_CFG_FILE}" ] && OBICO_CFG_FILE="${MOONRAKER_CONF_DIR}/moonraker-obico.cfg"
-OBICO_UPDATE_FILE="${MOONRAKER_CONF_DIR}/moonraker-obico-update.cfg"
-OBICO_SERVICE_NAME="moonraker-obico${SUFFIX}"
-OBICO_LOG_FILE="${MOONRAKER_LOG_DIR}/moonraker-obico${SUFFIX}.log"
+[ -z "${OBICO_CFG_FILE}" ] && OBICO_CFG_FILE="${MOONRAKER_CONF_DIR}/moonraker-yumi.cfg"
+OBICO_UPDATE_FILE="${MOONRAKER_CONF_DIR}/moonraker-yumi-update.cfg"
+OBICO_SERVICE_NAME="moonraker-yumi${SUFFIX}"
+OBICO_LOG_FILE="${MOONRAKER_LOG_DIR}/moonraker-yumi${SUFFIX}.log"
 
 if ! cfg_existed ; then
   create_config

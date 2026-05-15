@@ -93,7 +93,7 @@ class SentryWrapper:
             # django.contrib.auth) you may enable sending PII data.
             send_default_pii=True,
 
-            release='moonraker-obico@'+VERSION,
+            release='moonraker-yumi@'+VERSION,
         )
 
         self.init_context(auth_token=config.server.auth_token)

@@ -125,9 +125,9 @@ while getopts "hqc:n:dS" arg; do
 done
 
 if [ -z "${SUFFIX}" ] || [ "${SUFFIX}" == '-' ]; then
-  OBICO_SERVICE_NAME="moonraker-obico"
+  OBICO_SERVICE_NAME="moonraker-yumi"
 else
-  OBICO_SERVICE_NAME="moonraker-obico${SUFFIX}"
+  OBICO_SERVICE_NAME="moonraker-yumi${SUFFIX}"
 fi
 
 if [ -z "${OBICO_CFG_FILE}" ]; then

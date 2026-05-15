@@ -84,7 +84,7 @@ class MoonrakerConn:
 
 
     def _identify_as_obico(self):
-        params = dict(client_name='Obico', version=VERSION, type='agent', url='https://obico.io')
+        params = dict(client_name='Yumi', version=VERSION, type='agent', url='https://app.yumi-lab.com')
         if self.app_config.moonraker.api_key:
             params['api_key'] = self.app_config.moonraker.api_key
         self.jsonrpc_request('server.connection.identify', params=params)

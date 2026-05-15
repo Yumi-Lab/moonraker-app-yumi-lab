@@ -28,7 +28,7 @@ class MoonrakerConfig:
 
 @dataclasses.dataclass
 class ServerConfig:
-    url: str = 'https://app.obico.io'
+    url: str = 'https://app.yumi-lab.com'
     auth_token: Optional[str] = None
     upload_dir: str = ''  # relative to virtual sdcard
 
@@ -234,13 +234,13 @@ class Config:
         self.server = ServerConfig(
             url=config.get(
                 'server', 'url',
-                fallback='https://app.obico.io'),
+                fallback='https://app.yumi-lab.com'),
             auth_token=config.get(
                 'server', 'auth_token',
                 fallback=None),
             upload_dir=config.get(
                 'server', 'upload_dir',
-                fallback='Obico_Upload').strip().lstrip('/').rstrip('/'),
+                fallback='Yumi_Upload').strip().lstrip('/').rstrip('/'),
             feedrate_xy=config.getint(
                 'server', 'feedrate_xy',
                 fallback=ServerConfig.DEFAULT_FEEDRATE_XY,

@@ -167,7 +167,7 @@ SVCEOF
 
     sudo systemctl enable janus.service
     # In chroot (build), systemd is not running — skip daemon-reload and start
-    if [ "$(stat -c %d:%i /)" != "$(stat -c %d:%i /proc/1/root/.)" ] 2>/dev/null; then
+    if [ "$(cat /proc/1/comm 2>/dev/null)" != "systemd" ]; then
         report_status "Chroot detected — skipping janus service start (will start on boot)."
     else
         sudo systemctl daemon-reload

@@ -153,6 +153,20 @@ class ServerConn:
             _logger.warn('Failed to capture jpeg - ' + str(e))
             return
 
+    def post_pics_batch(self, webcam_config, frames):
+        """Send multiple JPEG frames in a single POST request."""
+        if not webcam_config or not frames:
+            return
+
+        files = [('pics', (f'frame_{i}.jpg', frame, 'image/jpeg')) for i, frame in enumerate(frames)]
+        data = dict(
+            is_primary_camera=webcam_config.is_primary_camera,
+            is_nozzle_camera=webcam_config.is_nozzle_camera,
+            camera_name=webcam_config.name,
+        )
+        self.send_http_request('POST', '/api/v1/octo/pics_batch/', timeout=120,
+                               files=files, data=data, raise_exception=True, skip_debug_logging=True)
+
     def send_http_request(self, method, uri, timeout=10, raise_exception=True, skip_debug_logging=False, **kwargs):
         endpoint = self.config.server.canonical_endpoint_prefix() + uri
         headers = {

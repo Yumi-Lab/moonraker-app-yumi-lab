@@ -129,25 +129,42 @@ class JpegPoster:
                 if not self.app_model.printer_state.is_printing():
                     continue
 
-                # Burst mode: send BURST_FRAME_COUNT frames at BURST_FRAME_INTERVAL,
-                # then sleep BURST_SILENCE_SECONDS before next burst
+                # Burst mode: capture BURST_FRAME_COUNT frames, then send all at once
                 silence = BURST_SILENCE_SECONDS
                 if not self.app_model.remote_status['viewing'] and not self.app_model.remote_status['should_watch']:
-                    silence *= 2  # Double silence when not watching and not detecting
+                    silence *= 2
 
                 if self.last_jpg_post_ts > time.time() - silence:
                     continue
 
-                _logger.info('Starting detection burst: %d frames at %ds interval',
+                _logger.info('Starting burst capture: %d frames at %ds interval',
                              BURST_FRAME_COUNT, BURST_FRAME_INTERVAL_SECONDS)
 
+                # Phase 1: capture all frames in memory
+                frames = []
                 for i in range(BURST_FRAME_COUNT):
                     if not self.app_model.printer_state.is_printing():
-                        _logger.info('Print stopped during burst at frame %d/%d', i + 1, BURST_FRAME_COUNT)
+                        _logger.info('Print stopped during capture at frame %d/%d', i + 1, BURST_FRAME_COUNT)
                         break
-                    self.server_conn.post_pic_to_server(webcam_config=self.config.primary_webcam_config, viewing_boost=False)
+                    try:
+                        jpeg_data = capture_jpeg(self.config.primary_webcam_config)
+                        frames.append(jpeg_data)
+                    except Exception as e:
+                        _logger.warn('Failed to capture frame %d: %s', i + 1, e)
                     if i < BURST_FRAME_COUNT - 1:
                         time.sleep(BURST_FRAME_INTERVAL_SECONDS)
+
+                # Phase 2: send all frames in a single POST
+                if frames:
+                    try:
+                        self.server_conn.post_pics_batch(
+                            webcam_config=self.config.primary_webcam_config,
+                            frames=frames)
+                        _logger.info('Burst sent: %d frames in 1 POST', len(frames))
+                    except Exception as e:
+                        _logger.warn('Failed to send burst: %s', e)
+                    finally:
+                        del frames  # free memory immediately
 
                 self.last_jpg_post_ts = time.time()
                 _logger.info('Burst complete, next burst in %ds', silence)

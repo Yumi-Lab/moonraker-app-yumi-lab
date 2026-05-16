@@ -8,7 +8,7 @@
 
 set -e
 
-JANUS_GITHUB_REPO="Yumi-Lab/moonraker-yumi-lab"
+JANUS_GITHUB_REPO="Yumi-Lab/moonraker-app-yumi-lab"
 
 # Source colors and helpers if available
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"

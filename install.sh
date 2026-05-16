@@ -92,6 +92,9 @@ ensure_deps() {
   sudo sed -i '/^deb http:\/\/apt.armbian.com buster main buster-utils buster-desktop/s/^/# /' /etc/apt/sources.list.d/armbian.list 2>/dev/null || true
   sudo apt-get --allow-releaseinfo-change -o Acquire::Check-Valid-Until=false -o Acquire::Check-Date=false update
   sudo apt-get install --yes ${PKGLIST}
+  # Ensure Janus WebRTC Gateway is available (apt on Bookworm, pre-built .deb on Trixie+)
+  "${OBICO_DIR}/scripts/ensure_janus.sh" || echo "Janus installation skipped — WebRTC streaming may not work."
+
   ensure_venv
   debug Running... "${OBICO_ENV}"/bin/pip3 install -q -r "${OBICO_DIR}"/requirements.txt
   "${OBICO_ENV}"/bin/pip3 install -q -r "${OBICO_DIR}"/requirements.txt

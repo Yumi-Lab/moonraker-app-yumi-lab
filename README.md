@@ -64,7 +64,7 @@ managed_services: klipper
 
 - [Yumi Lab Wiki](https://wiki.yumi-lab.com)
 - [Yumi Lab App](https://app.yumi-lab.com)
-- [Discord](https://discord.gg/yumi-lab)
+- [Discord](https://discord.yumi-lab.com)
 
 ## Credits
 

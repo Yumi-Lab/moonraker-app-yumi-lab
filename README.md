@@ -1,49 +1,71 @@
-# Obico for Klipper (Moonraker-Obico)
+# Moonraker-Yumi — Yumi Lab App for Klipper
 
-This is a Moonraker plugin that enables the Klipper-based 3D printers to connect to Obico.
+Moonraker plugin that connects Klipper-based 3D printers to the [Yumi Lab](https://app.yumi-lab.com) platform.
 
-[Obico](https://www.obico.io) is a community-built, open-source smart 3D printing platform used by makers, enthusiasts, and tinkerers around the world.
+## Features
 
+- AI-powered print failure detection
+- 25 FPS WebRTC webcam streaming (via Janus Gateway)
+- Remote monitoring and control
+- Mobile app support (iOS / Android)
+- TURN relay via `app.yumi-lab.com`
 
-# Installation
+## Supported Platforms
 
-    cd ~
-    git clone https://github.com/TheSpaghettiDetective/moonraker-obico.git
-    cd moonraker-obico
-    ./install.sh
+| Platform | OS | Architecture |
+|----------|-----|-------------|
+| SmartPi ONE (YumiOS V2) | Debian 13 Trixie | armhf |
+| SmartPi ONE (YumiOS V2) | Debian 12 Bookworm | armhf |
 
-[Detailed documentation](https://www.obico.io/docs/user-guides/klipper-setup/).
+> For legacy SmartPad V1, see [moonraker-yumi-lab](https://github.com/Yumi-Lab/moonraker-yumi-lab).
 
+## Installation
 
-# Uninstall
+```bash
+cd ~
+git clone https://github.com/Yumi-Lab/moonraker-app-yumi-lab.git
+cd moonraker-app-yumi-lab
+chmod +x install.sh
+./install.sh -S "https://app.yumi-lab.com"
+```
 
-    sudo systemctl stop moonraker-obico.service
-    sudo systemctl disable moonraker-obico.service
-    sudo rm /etc/systemd/system/moonraker-obico.service
-    sudo systemctl daemon-reload
-    sudo systemctl reset-failed
-    rm -rf ~/moonraker-obico
-    rm -rf ~/moonraker-obico-env
+The installer will:
+- Create a Python virtualenv (`moonraker-yumi-env`)
+- Install Janus WebRTC Gateway (apt on Bookworm, pre-built .deb on Trixie)
+- Create the `moonraker-yumi` systemd service
+- Generate `moonraker-yumi-update.cfg` for Moonraker update manager
 
+## Uninstall
 
-# Use the container Image
+```bash
+sudo systemctl stop moonraker-yumi.service
+sudo systemctl disable moonraker-yumi.service
+sudo rm /etc/systemd/system/moonraker-yumi.service
+sudo systemctl daemon-reload
+rm -rf ~/moonraker-app-yumi-lab
+rm -rf ~/moonraker-yumi-env
+```
 
-See [run_as_container.md](run_as_container.md)
+## Update Manager
 
-# Set up a dev environment
+The service auto-updates via Moonraker. Config in `moonraker-yumi-update.cfg`:
 
-    cd ~
-    git clone https://github.com/TheSpaghettiDetective/moonraker-obico.git
-    cd moonraker-obico
-    virtualenv -p /usr/bin/python3 --system-site-packages ~/moonraker-obico-env
-    source ~/moonraker-obico-env/bin/activate
-    pip3 install -r requirements.txt
+```ini
+[update_manager moonraker-yumi]
+type: git_repo
+path: ~/moonraker-app-yumi-lab
+origin: https://github.com/Yumi-Lab/moonraker-app-yumi-lab.git
+install_script: install.sh
+is_system_service: False
+managed_services: klipper
+```
 
-    # fill in essential configuration
-    cp moonraker-obico.cfg.sample moonraker-obico.cfg
+## Links
 
-    # link printer (grab Obico auth token)
-    python3 -m moonraker_obico.link -c moonraker-obico.cfg
+- [Yumi Lab Wiki](https://wiki.yumi-lab.com)
+- [Yumi Lab App](https://app.yumi-lab.com)
+- [Discord](https://discord.gg/yumi-lab)
 
-    # start app
-    python3 -m moonraker_obico.app -c moonraker-obico.cfg
+## Credits
+
+Based on [Obico for Klipper](https://github.com/TheSpaghettiDetective/moonraker-obico) by TheSpaghettiDetective.

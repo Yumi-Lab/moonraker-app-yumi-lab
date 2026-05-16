@@ -15,9 +15,14 @@ import threading
 
 from .utils import DEBUG
 
-POST_PIC_INTERVAL_SECONDS = 300.0  # 5 minutes — reduces server load for AI detection
+# Burst mode: 10 min silence, then 20 frames at 10s interval
+BURST_SILENCE_SECONDS = 600.0       # 10 minutes between bursts
+BURST_FRAME_COUNT = 20              # frames per burst
+BURST_FRAME_INTERVAL_SECONDS = 10.0 # seconds between frames in a burst
+
 if DEBUG:
-    POST_PIC_INTERVAL_SECONDS = 10.0
+    BURST_SILENCE_SECONDS = 60.0
+    BURST_FRAME_INTERVAL_SECONDS = 5.0
 
 _logger = logging.getLogger('obico.webcam_capture')
 
@@ -112,10 +117,11 @@ class JpegPoster:
     def pic_post_loop(self):
         while True:
             try:
+                # Handle viewing boost requests (user watching live feed)
                 viewing_boost = self.need_viewing_boost.wait(1)
                 if viewing_boost:
                     self.need_viewing_boost.clear()
-                    repeats = 3 if self.app_model.linked_printer.get('is_pro') else 1 # Pro users get better viewing boost
+                    repeats = 3 if self.app_model.linked_printer.get('is_pro') else 1
                     for _ in range(repeats):
                         self.server_conn.post_pic_to_server(webcam_config=self.config.primary_webcam_config, viewing_boost=True)
                     continue
@@ -123,15 +129,28 @@ class JpegPoster:
                 if not self.app_model.printer_state.is_printing():
                     continue
 
-                interval_seconds = POST_PIC_INTERVAL_SECONDS
+                # Burst mode: send BURST_FRAME_COUNT frames at BURST_FRAME_INTERVAL,
+                # then sleep BURST_SILENCE_SECONDS before next burst
+                silence = BURST_SILENCE_SECONDS
                 if not self.app_model.remote_status['viewing'] and not self.app_model.remote_status['should_watch']:
-                    interval_seconds *= 12      # Slow down jpeg posting if needed
+                    silence *= 2  # Double silence when not watching and not detecting
 
-                if self.last_jpg_post_ts > time.time() - interval_seconds:
+                if self.last_jpg_post_ts > time.time() - silence:
                     continue
 
+                _logger.info('Starting detection burst: %d frames at %ds interval',
+                             BURST_FRAME_COUNT, BURST_FRAME_INTERVAL_SECONDS)
+
+                for i in range(BURST_FRAME_COUNT):
+                    if not self.app_model.printer_state.is_printing():
+                        _logger.info('Print stopped during burst at frame %d/%d', i + 1, BURST_FRAME_COUNT)
+                        break
+                    self.server_conn.post_pic_to_server(webcam_config=self.config.primary_webcam_config, viewing_boost=False)
+                    if i < BURST_FRAME_COUNT - 1:
+                        time.sleep(BURST_FRAME_INTERVAL_SECONDS)
+
                 self.last_jpg_post_ts = time.time()
-                self.server_conn.post_pic_to_server(webcam_config=self.config.primary_webcam_config, viewing_boost=False)
+                _logger.info('Burst complete, next burst in %ds', silence)
             except:
                 self.sentry.captureException()
 

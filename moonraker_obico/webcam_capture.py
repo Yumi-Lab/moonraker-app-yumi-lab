@@ -15,13 +15,13 @@ import threading
 
 from .utils import DEBUG
 
-# Burst mode: 10 min silence, then 20 frames at 10s interval
-BURST_SILENCE_SECONDS = 600.0       # 10 minutes between bursts
-BURST_FRAME_COUNT = 20              # frames per burst
+# Burst mode: 3 min silence, then 7 frames at 10s interval
+BURST_SILENCE_SECONDS = 180.0       # 3 minutes between bursts
+BURST_FRAME_COUNT = 7               # frames per burst
 BURST_FRAME_INTERVAL_SECONDS = 10.0 # seconds between frames in a burst
 
 if DEBUG:
-    BURST_SILENCE_SECONDS = 60.0
+    BURST_SILENCE_SECONDS = 30.0
     BURST_FRAME_INTERVAL_SECONDS = 5.0
 
 _logger = logging.getLogger('obico.webcam_capture')

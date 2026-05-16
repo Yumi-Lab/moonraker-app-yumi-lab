@@ -15,9 +15,9 @@ import threading
 
 from .utils import DEBUG
 
-POST_PIC_INTERVAL_SECONDS = 10.0
+POST_PIC_INTERVAL_SECONDS = 300.0  # 5 minutes — reduces server load for AI detection
 if DEBUG:
-    POST_PIC_INTERVAL_SECONDS = 3.0
+    POST_PIC_INTERVAL_SECONDS = 10.0
 
 _logger = logging.getLogger('obico.webcam_capture')
 

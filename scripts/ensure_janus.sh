@@ -142,37 +142,27 @@ setup_janus_config() {
 }
 
 setup_janus_service() {
-    # Create systemd service for Janus if not already present
+    # moonraker-obico starts its own Janus instance with custom config on port 17730.
+    # A system-wide Janus service wastes ~12MB RAM and uses default config (no MJPEG streams).
+    # Remove it if previously created, and ensure it's not running.
     if [ -f /etc/systemd/system/janus.service ]; then
-        report_status "Janus systemd service already exists."
-        return 0
+        report_status "Removing system Janus service (moonraker-obico manages its own instance)..."
+        if [ "$(cat /proc/1/comm 2>/dev/null)" != "systemd" ]; then
+            report_status "Chroot detected — removing service file only."
+        else
+            sudo systemctl stop janus.service 2>/dev/null || true
+            sudo systemctl disable janus.service 2>/dev/null || true
+            sudo systemctl daemon-reload
+        fi
+        sudo rm -f /etc/systemd/system/janus.service
+        report_status "System Janus service removed."
     fi
 
-    report_status "Creating Janus systemd service..."
-    sudo tee /etc/systemd/system/janus.service > /dev/null <<'SVCEOF'
-[Unit]
-Description=Janus WebRTC Gateway
-After=network.target
-
-[Service]
-Type=simple
-ExecStart=/usr/bin/janus -o -F /etc/janus
-Restart=on-failure
-RestartSec=5
-LimitNOFILE=65536
-
-[Install]
-WantedBy=multi-user.target
-SVCEOF
-
-    sudo systemctl enable janus.service
-    # In chroot (build), systemd is not running — skip daemon-reload and start
-    if [ "$(cat /proc/1/comm 2>/dev/null)" != "systemd" ]; then
-        report_status "Chroot detected — skipping janus service start (will start on boot)."
-    else
-        sudo systemctl daemon-reload
-        sudo systemctl start janus.service
-        report_status "Janus service created and started."
+    # Also stop any running system Janus that was started by default
+    if systemctl is-active --quiet janus.service 2>/dev/null; then
+        report_status "Stopping leftover system Janus..."
+        sudo systemctl stop janus.service 2>/dev/null || true
+        sudo systemctl disable janus.service 2>/dev/null || true
     fi
 }
 

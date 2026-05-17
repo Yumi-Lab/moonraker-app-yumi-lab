@@ -14,7 +14,7 @@ MOONRAKER_CONFIG_FILE="${MOONRAKER_CONF_DIR}/moonraker.conf"
 MOONRAKER_LOG_DIR="${HOME}/printer_data/logs"
 MOONRAKER_HOST="127.0.0.1"
 MOONRAKER_PORT="7125"
-APP_YUMI_LAB_SERVICE_NAME="moonraker-yumi"
+APP_YUMI_LAB_SERVICE_NAME="moonraker-app-yumi-lab"
 APP_YUMI_LAB_REPO="https://github.com/Yumi-Lab/moonraker-app-yumi-lab.git"
 CURRENT_USER=${USER}
 OVERWRITE_CONFIG="n"
@@ -26,22 +26,22 @@ usage() {
     echo ""
   fi
   cat <<EOF
-Usage: $0 <[global_options]>   # Interactive installation to get moonraker-yumi set up. Recommended if you have only 1 printer
+Usage: $0 <[global_options]>   # Interactive installation to get moonraker-app-yumi-lab set up. Recommended if you have only 1 printer
        $0 <[global_options]> <[moonraker_setting_options]>   # Recommended for multiple-printer setup
 
 Global options:
-          -f   Reset moonraker-yumi config file, including removing the linked printer
+          -f   Reset moonraker-app-yumi-lab config file, including removing the linked printer
           -L   Skip the step to link to the Obico server.
           -u   Show uninstallation instructions
           -d   Show debugging info
-          -U   Update moonraker-yumi to the latest version
+          -U   Update moonraker-app-yumi-lab to the latest version
 
 Moonraker setting options (${yellow}if any of them are specified, all need to be specified${default}):
           -n   The "name" that will be appended to the end of the system service name and log file. Useful only in multi-printer setup.
           -H   Moonraker server hostname or ip address
           -p   Moonraker server port
           -C   Moonraker config file path
-          -l   The directory for moonraker-yumi log files, which are rotated based on size.
+          -l   The directory for moonraker-app-yumi-lab log files, which are rotated based on size.
           -S   The URL of the Yumi server to link the printer to, e.g., https://app.yumi-lab.com
 EOF
 }
@@ -111,9 +111,9 @@ ensure_writtable() {
 recreate_service() {
   sudo systemctl stop "${APP_YUMI_LAB_SERVICE_NAME}" 2>/dev/null || true
 
-  report_status "Creating moonraker-yumi systemctl service... You may need to enter password to run sudo."
+  report_status "Creating moonraker-app-yumi-lab systemctl service... You may need to enter password to run sudo."
   sudo /bin/sh -c "cat > /etc/systemd/system/${APP_YUMI_LAB_SERVICE_NAME}.service" <<EOF
-#Systemd service file for moonraker-yumi
+#Systemd service file for moonraker-app-yumi-lab
 [Unit]
 Description=Moonraker-Yumi
 After=network-online.target moonraker.service
@@ -155,7 +155,7 @@ sudo rm "/etc/systemd/system/${APP_YUMI_LAB_SERVICE_NAME}.service"
 sudo systemctl daemon-reload
 sudo systemctl reset-failed
 rm -rf ~/moonraker-app-yumi-lab
-rm -rf ~/moonraker-yumi-env
+rm -rf ~/moonraker-app-yumi-lab-env
 
 -------------------------
 
@@ -167,7 +167,7 @@ rm -rf ~/moonraker-yumi-env
 
 3. Remove this line in "moonraker.conf":
 
-[include moonraker-yumi-update.cfg]
+[include moonraker-app-yumi-lab-update.cfg]
 
 
 EOF
@@ -238,10 +238,10 @@ ensure_writtable "${MOONRAKER_CONF_DIR}"
 ensure_writtable "${MOONRAKER_CONFIG_FILE}"
 ensure_writtable "${MOONRAKER_LOG_DIR}"
 
-[ -z "${APP_YUMI_LAB_CFG_FILE}" ] && APP_YUMI_LAB_CFG_FILE="${MOONRAKER_CONF_DIR}/moonraker-yumi.cfg"
-APP_YUMI_LAB_UPDATE_FILE="${MOONRAKER_CONF_DIR}/moonraker-yumi-update.cfg"
-APP_YUMI_LAB_SERVICE_NAME="moonraker-yumi${SUFFIX}"
-APP_YUMI_LAB_LOG_FILE="${MOONRAKER_LOG_DIR}/moonraker-yumi${SUFFIX}.log"
+[ -z "${APP_YUMI_LAB_CFG_FILE}" ] && APP_YUMI_LAB_CFG_FILE="${MOONRAKER_CONF_DIR}/moonraker-app-yumi-lab.cfg"
+APP_YUMI_LAB_UPDATE_FILE="${MOONRAKER_CONF_DIR}/moonraker-app-yumi-lab-update.cfg"
+APP_YUMI_LAB_SERVICE_NAME="moonraker-app-yumi-lab${SUFFIX}"
+APP_YUMI_LAB_LOG_FILE="${MOONRAKER_LOG_DIR}/moonraker-app-yumi-lab${SUFFIX}.log"
 
 if ! cfg_existed ; then
   create_config

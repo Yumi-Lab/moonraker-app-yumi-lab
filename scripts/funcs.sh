@@ -112,9 +112,9 @@ is_system_service: False
 managed_services: klipper
 EOF
 
-  if ! grep -q "include moonraker-yumi-update.cfg" "${MOONRAKER_CONFIG_FILE}" ; then
+  if ! grep -q "include moonraker-app-yumi-lab-update.cfg" "${MOONRAKER_CONFIG_FILE}" ; then
     echo "" >> "${MOONRAKER_CONFIG_FILE}"
-    echo "[include moonraker-yumi-update.cfg]" >> "${MOONRAKER_CONFIG_FILE}"
+    echo "[include moonraker-app-yumi-lab-update.cfg]" >> "${MOONRAKER_CONFIG_FILE}"
 	fi
 
   "${APP_YUMI_LAB_DIR}/scripts/ensure_include_cfgs.sh" "${MOONRAKER_CONF_DIR}/printer.cfg"
@@ -122,9 +122,9 @@ EOF
 
 
 ensure_venv() {
-  APP_YUMI_LAB_ENV="${APP_YUMI_LAB_DIR}/../moonraker-yumi-env"
+  APP_YUMI_LAB_ENV="${APP_YUMI_LAB_DIR}/../moonraker-app-yumi-lab-env"
   if [ ! -f "${APP_YUMI_LAB_ENV}/bin/activate" ] ; then
-    report_status "Creating python virtual environment for moonraker-yumi..."
+    report_status "Creating python virtual environment for moonraker-app-yumi-lab..."
     mkdir -p "${APP_YUMI_LAB_ENV}"
     if is_k1; then
       virtualenv -p /opt/bin/python3 --system-site-packages "${APP_YUMI_LAB_ENV}"

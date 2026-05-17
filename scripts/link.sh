@@ -125,9 +125,9 @@ while getopts "hqc:n:dS" arg; do
 done
 
 if [ -z "${SUFFIX}" ] || [ "${SUFFIX}" == '-' ]; then
-  APP_YUMI_LAB_SERVICE_NAME="moonraker-yumi"
+  APP_YUMI_LAB_SERVICE_NAME="moonraker-app-yumi-lab"
 else
-  APP_YUMI_LAB_SERVICE_NAME="moonraker-yumi${SUFFIX}"
+  APP_YUMI_LAB_SERVICE_NAME="moonraker-app-yumi-lab${SUFFIX}"
 fi
 
 if [ -z "${APP_YUMI_LAB_CFG_FILE}" ]; then

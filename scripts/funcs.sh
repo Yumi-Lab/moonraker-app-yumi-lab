@@ -104,8 +104,10 @@ recreate_update_file() {
 type: git_repo
 path: ${OBICO_DIR}
 origin: ${OBICO_REPO}
+virtualenv: ${OBICO_ENV}
 install_script: install.sh
 requirements: requirements.txt
+system_dependencies: system_dependencies.json
 is_system_service: False
 managed_services: klipper
 EOF

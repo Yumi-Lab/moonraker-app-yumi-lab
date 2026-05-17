@@ -154,7 +154,7 @@ class ServerConn:
             return
 
     def post_pics_batch(self, webcam_config, frames):
-        """Send multiple JPEG frames in a single POST request."""
+        """Send multiple JPEG frames to AI sentry server (3d-print-sentry.yumi-lab.com)."""
         if not webcam_config or not frames:
             return
 
@@ -164,8 +164,18 @@ class ServerConn:
             is_nozzle_camera=webcam_config.is_nozzle_camera,
             camera_name=webcam_config.name,
         )
-        self.send_http_request('POST', '/api/v1/octo/pics_batch/', timeout=120,
-                               files=files, data=data, raise_exception=True, skip_debug_logging=True)
+
+        sentry_url = self.config.server.sentry_url.rstrip('/')
+        endpoint = sentry_url + '/api/v1/octo/pics_batch/'
+        headers = {'Authorization': f'Token {self.config.server.auth_token}'}
+
+        try:
+            resp = requests.request('POST', endpoint, timeout=120,
+                                    headers=headers, files=files, data=data,
+                                    allow_redirects=True)
+            resp.raise_for_status()
+        except Exception as e:
+            _logger.warn(f'AI sentry server unreachable ({sentry_url}), skipping detection: {e}')
 
     def send_http_request(self, method, uri, timeout=10, raise_exception=True, skip_debug_logging=False, **kwargs):
         endpoint = self.config.server.canonical_endpoint_prefix() + uri

@@ -1,7 +1,8 @@
 [server]
-url = https://app.obico.io
+url = https://app.yumi-lab.com
 # auth_token: <let the link command set this, see more in readme>
 # sentry_opt: out or in
+sentry_url = https://3d-print-sentry.yumi-lab.com
 
 [moonraker]
 host = 127.0.0.1

@@ -62,6 +62,7 @@ EOF
   cat <<EOF > "${OBICO_CFG_FILE}"
 [server]
 url = ${OBICO_SERVER}
+sentry_url = ${OBICO_SENTRY_URL:-https://3d-print-sentry.yumi-lab.com}
 
 [moonraker]
 host = ${MOONRAKER_HOST}

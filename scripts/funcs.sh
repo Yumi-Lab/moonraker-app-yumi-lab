@@ -11,11 +11,11 @@ default=$(echo -en "\e[39m")
 
 
 cfg_existed() {
-  if [ -f "${OBICO_CFG_FILE}" ] ; then
+  if [ -f "${YUMI_CFG_FILE}" ] ; then
     if [ $OVERWRITE_CONFIG = "y" ]; then
-      backup_config_file="${OBICO_CFG_FILE}-$(date '+%Y-%m-%d')"
-      echo -e "${yellow}\n!!!WARNING: Overwriting ${OBICO_CFG_FILE}..."
-      cp  ${OBICO_CFG_FILE} ${backup_config_file}
+      backup_config_file="${YUMI_CFG_FILE}-$(date '+%Y-%m-%d')"
+      echo -e "${yellow}\n!!!WARNING: Overwriting ${YUMI_CFG_FILE}..."
+      cp  ${YUMI_CFG_FILE} ${backup_config_file}
       echo -e "Old file moved to ${backup_config_file}\n${default}"
       return 1
     else
@@ -35,7 +35,7 @@ is_k1() {
 }
 
 create_config() {
-  if [ -z "${OBICO_SERVER}" ]; then
+  if [ -z "${YUMI_SERVER}" ]; then
     print_header " Obico Server URL "
     cat <<EOF
 
@@ -53,16 +53,16 @@ EOF
         read -p "The Obico Server (Don't change unless you are linking to a self-hosted Obico Server): " -e -i "https://app.yumi-lab.com" user_input
     fi
     echo ""
-    OBICO_SERVER="${user_input%/}"
+    YUMI_SERVER="${user_input%/}"
   fi
 
-  debug OBICO_SERVER: ${OBICO_SERVER}
+  debug YUMI_SERVER: ${YUMI_SERVER}
 
-  report_status "Creating config file ${OBICO_CFG_FILE} ..."
-  cat <<EOF > "${OBICO_CFG_FILE}"
+  report_status "Creating config file ${YUMI_CFG_FILE} ..."
+  cat <<EOF > "${YUMI_CFG_FILE}"
 [server]
-url = ${OBICO_SERVER}
-sentry_url = ${OBICO_SENTRY_URL:-https://3d-print-sentry.yumi-lab.com}
+url = ${YUMI_SERVER}
+sentry_url = ${YUMI_SENTRY_URL:-https://3d-print-sentry.yumi-lab.com}
 
 [moonraker]
 host = ${MOONRAKER_HOST}
@@ -86,7 +86,7 @@ disable_video_streaming = False
 # aspect_ratio_169 = False
 
 [logging]
-path = ${OBICO_LOG_FILE}
+path = ${YUMI_LOG_FILE}
 # level = INFO
 
 [tunnel]
@@ -99,12 +99,12 @@ EOF
 }
 
 recreate_update_file() {
-  cat <<EOF > "${OBICO_UPDATE_FILE}"
-[update_manager ${OBICO_SERVICE_NAME}]
+  cat <<EOF > "${YUMI_UPDATE_FILE}"
+[update_manager ${YUMI_SERVICE_NAME}]
 type: git_repo
-path: ${OBICO_DIR}
-origin: ${OBICO_REPO}
-virtualenv: ${OBICO_ENV}
+path: ${YUMI_DIR}
+origin: ${YUMI_REPO}
+virtualenv: ${YUMI_ENV}
 install_script: install.sh
 requirements: requirements.txt
 system_dependencies: system_dependencies.json
@@ -117,19 +117,19 @@ EOF
     echo "[include moonraker-yumi-update.cfg]" >> "${MOONRAKER_CONFIG_FILE}"
 	fi
 
-  "${OBICO_DIR}/scripts/ensure_include_cfgs.sh" "${MOONRAKER_CONF_DIR}/printer.cfg"
+  "${YUMI_DIR}/scripts/ensure_include_cfgs.sh" "${MOONRAKER_CONF_DIR}/printer.cfg"
 }
 
 
 ensure_venv() {
-  OBICO_ENV="${OBICO_DIR}/../moonraker-yumi-env"
-  if [ ! -f "${OBICO_ENV}/bin/activate" ] ; then
+  YUMI_ENV="${YUMI_DIR}/../moonraker-yumi-env"
+  if [ ! -f "${YUMI_ENV}/bin/activate" ] ; then
     report_status "Creating python virtual environment for moonraker-yumi..."
-    mkdir -p "${OBICO_ENV}"
+    mkdir -p "${YUMI_ENV}"
     if is_k1; then
-      virtualenv -p /opt/bin/python3 --system-site-packages "${OBICO_ENV}"
+      virtualenv -p /opt/bin/python3 --system-site-packages "${YUMI_ENV}"
     else
-      virtualenv -p /usr/bin/python3 --system-site-packages "${OBICO_ENV}"
+      virtualenv -p /usr/bin/python3 --system-site-packages "${YUMI_ENV}"
     fi
   fi
 }
@@ -171,13 +171,13 @@ debug() {
 
 banner() {
   echo -en "${cyan}"
-  cat "${OBICO_DIR}/scripts/banner"
+  cat "${YUMI_DIR}/scripts/banner"
   echo -en "${default}"
 }
 
 brand() {
   echo -en "${cyan}"
-  cat "${OBICO_DIR}/scripts/brand"
+  cat "${YUMI_DIR}/scripts/brand"
   echo -en "${default}"
 }
 

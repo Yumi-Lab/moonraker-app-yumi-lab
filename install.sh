@@ -4,9 +4,9 @@ set -e
 
 export PIP_DEFAULT_TIMEOUT=1200 # For slow network connection
 
-export YUMI_DIR=$(readlink -f $(dirname "$0"))
+export APP_YUMI_LAB_DIR=$(readlink -f $(dirname "$0"))
 
-. "${YUMI_DIR}/scripts/funcs.sh"
+. "${APP_YUMI_LAB_DIR}/scripts/funcs.sh"
 
 SUFFIX=""
 MOONRAKER_CONF_DIR="${HOME}/printer_data/config"
@@ -14,8 +14,8 @@ MOONRAKER_CONFIG_FILE="${MOONRAKER_CONF_DIR}/moonraker.conf"
 MOONRAKER_LOG_DIR="${HOME}/printer_data/logs"
 MOONRAKER_HOST="127.0.0.1"
 MOONRAKER_PORT="7125"
-YUMI_SERVICE_NAME="moonraker-yumi"
-YUMI_REPO="https://github.com/Yumi-Lab/moonraker-app-yumi-lab.git"
+APP_YUMI_LAB_SERVICE_NAME="moonraker-yumi"
+APP_YUMI_LAB_REPO="https://github.com/Yumi-Lab/moonraker-app-yumi-lab.git"
 CURRENT_USER=${USER}
 OVERWRITE_CONFIG="n"
 SKIP_LINKING="n"
@@ -93,11 +93,11 @@ ensure_deps() {
   sudo apt-get --allow-releaseinfo-change -o Acquire::Check-Valid-Until=false -o Acquire::Check-Date=false update
   sudo apt-get install --yes ${PKGLIST}
   # Ensure Janus WebRTC Gateway is available (apt on Bookworm, pre-built .deb on Trixie+)
-  "${YUMI_DIR}/scripts/ensure_janus.sh" || echo "Janus installation skipped — WebRTC streaming may not work."
+  "${APP_YUMI_LAB_DIR}/scripts/ensure_janus.sh" || echo "Janus installation skipped — WebRTC streaming may not work."
 
   ensure_venv
-  debug Running... "${YUMI_ENV}"/bin/pip3 install -q -r "${YUMI_DIR}"/requirements.txt
-  "${YUMI_ENV}"/bin/pip3 install -q -r "${YUMI_DIR}"/requirements.txt
+  debug Running... "${APP_YUMI_LAB_ENV}"/bin/pip3 install -q -r "${APP_YUMI_LAB_DIR}"/requirements.txt
+  "${APP_YUMI_LAB_ENV}"/bin/pip3 install -q -r "${APP_YUMI_LAB_DIR}"/requirements.txt
   echo ""
 }
 
@@ -109,10 +109,10 @@ ensure_writtable() {
 }
 
 recreate_service() {
-  sudo systemctl stop "${YUMI_SERVICE_NAME}" 2>/dev/null || true
+  sudo systemctl stop "${APP_YUMI_LAB_SERVICE_NAME}" 2>/dev/null || true
 
   report_status "Creating moonraker-yumi systemctl service... You may need to enter password to run sudo."
-  sudo /bin/sh -c "cat > /etc/systemd/system/${YUMI_SERVICE_NAME}.service" <<EOF
+  sudo /bin/sh -c "cat > /etc/systemd/system/${APP_YUMI_LAB_SERVICE_NAME}.service" <<EOF
 #Systemd service file for moonraker-yumi
 [Unit]
 Description=Moonraker-Yumi
@@ -124,13 +124,13 @@ WantedBy=multi-user.target
 [Service]
 Type=simple
 User=${CURRENT_USER}
-WorkingDirectory=${YUMI_DIR}
-ExecStart=${YUMI_ENV}/bin/python3 -m moonraker_obico.app -c ${YUMI_CFG_FILE}
+WorkingDirectory=${APP_YUMI_LAB_DIR}
+ExecStart=${APP_YUMI_LAB_ENV}/bin/python3 -m moonraker_obico.app -c ${APP_YUMI_LAB_CFG_FILE}
 Restart=always
 RestartSec=5
 EOF
 
-  sudo systemctl enable "${YUMI_SERVICE_NAME}"
+  sudo systemctl enable "${APP_YUMI_LAB_SERVICE_NAME}"
   sudo systemctl daemon-reload
 }
 
@@ -149,9 +149,9 @@ To uninstall Moonraker-Yumi, please
 
 --------------------------
 
-sudo systemctl stop "${YUMI_SERVICE_NAME}"
-sudo systemctl disable "${YUMI_SERVICE_NAME}"
-sudo rm "/etc/systemd/system/${YUMI_SERVICE_NAME}.service"
+sudo systemctl stop "${APP_YUMI_LAB_SERVICE_NAME}"
+sudo systemctl disable "${APP_YUMI_LAB_SERVICE_NAME}"
+sudo rm "/etc/systemd/system/${APP_YUMI_LAB_SERVICE_NAME}.service"
 sudo systemctl daemon-reload
 sudo systemctl reset-failed
 rm -rf ~/moonraker-app-yumi-lab
@@ -189,7 +189,7 @@ while getopts "hn:H:p:C:l:S:fLusdU" arg; do
         C) mr_config=${OPTARG};;
         l) log_path=${OPTARG%/};;
         n) SUFFIX="-${OPTARG}";;
-        S) YUMI_SERVER="${OPTARG}";;
+        S) APP_YUMI_LAB_SERVER="${OPTARG}";;
         f) OVERWRITE_CONFIG="y";;
         s) ;; # Backward compatibility for kiauh
         L) SKIP_LINKING="y";;
@@ -205,7 +205,7 @@ welcome
 ensure_not_octoprint
 ensure_deps
 
-if "${YUMI_DIR}/scripts/tsd_service_existed.sh" ; then
+if "${APP_YUMI_LAB_DIR}/scripts/tsd_service_existed.sh" ; then
   exit 0
 fi
 
@@ -238,25 +238,25 @@ ensure_writtable "${MOONRAKER_CONF_DIR}"
 ensure_writtable "${MOONRAKER_CONFIG_FILE}"
 ensure_writtable "${MOONRAKER_LOG_DIR}"
 
-[ -z "${YUMI_CFG_FILE}" ] && YUMI_CFG_FILE="${MOONRAKER_CONF_DIR}/moonraker-yumi.cfg"
-YUMI_UPDATE_FILE="${MOONRAKER_CONF_DIR}/moonraker-yumi-update.cfg"
-YUMI_SERVICE_NAME="moonraker-yumi${SUFFIX}"
-YUMI_LOG_FILE="${MOONRAKER_LOG_DIR}/moonraker-yumi${SUFFIX}.log"
+[ -z "${APP_YUMI_LAB_CFG_FILE}" ] && APP_YUMI_LAB_CFG_FILE="${MOONRAKER_CONF_DIR}/moonraker-yumi.cfg"
+APP_YUMI_LAB_UPDATE_FILE="${MOONRAKER_CONF_DIR}/moonraker-yumi-update.cfg"
+APP_YUMI_LAB_SERVICE_NAME="moonraker-yumi${SUFFIX}"
+APP_YUMI_LAB_LOG_FILE="${MOONRAKER_LOG_DIR}/moonraker-yumi${SUFFIX}.log"
 
 if ! cfg_existed ; then
   create_config
 fi
 
 # Inject sentry_url into existing config if missing
-if [ -f "${YUMI_CFG_FILE}" ] && ! grep -q "sentry_url" "${YUMI_CFG_FILE}"; then
-  sed -i '/^url = /a sentry_url = https://3d-print-sentry.yumi-lab.com' "${YUMI_CFG_FILE}"
-  report_status "Added sentry_url to ${YUMI_CFG_FILE}"
+if [ -f "${APP_YUMI_LAB_CFG_FILE}" ] && ! grep -q "sentry_url" "${APP_YUMI_LAB_CFG_FILE}"; then
+  sed -i '/^url = /a sentry_url = https://3d-print-sentry.yumi-lab.com' "${APP_YUMI_LAB_CFG_FILE}"
+  report_status "Added sentry_url to ${APP_YUMI_LAB_CFG_FILE}"
 fi
 
 recreate_service
 recreate_update_file
 
-if "${YUMI_DIR}/scripts/migrated_from_tsd.sh" "${MOONRAKER_CONF_DIR}" "${YUMI_ENV}"; then
+if "${APP_YUMI_LAB_DIR}/scripts/migrated_from_tsd.sh" "${MOONRAKER_CONF_DIR}" "${APP_YUMI_LAB_ENV}"; then
   exit 0
 fi
 
@@ -264,10 +264,10 @@ trap - ERR
 trap - INT
 
 if [ $SKIP_LINKING != "y" ]; then
-  debug Running... "${YUMI_DIR}/scripts/link.sh" -c "${YUMI_CFG_FILE}" -n \"${SUFFIX:1}\"
-  "${YUMI_DIR}/scripts/link.sh" -c "${YUMI_CFG_FILE}" -n "${SUFFIX:1}"
+  debug Running... "${APP_YUMI_LAB_DIR}/scripts/link.sh" -c "${APP_YUMI_LAB_CFG_FILE}" -n \"${SUFFIX:1}\"
+  "${APP_YUMI_LAB_DIR}/scripts/link.sh" -c "${APP_YUMI_LAB_CFG_FILE}" -n "${SUFFIX:1}"
 else
-  report_status "Launching ${YUMI_SERVICE_NAME} service..."
-  sudo systemctl restart "${YUMI_SERVICE_NAME}"
+  report_status "Launching ${APP_YUMI_LAB_SERVICE_NAME} service..."
+  sudo systemctl restart "${APP_YUMI_LAB_SERVICE_NAME}"
 fi
 

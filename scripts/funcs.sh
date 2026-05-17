@@ -11,11 +11,11 @@ default=$(echo -en "\e[39m")
 
 
 cfg_existed() {
-  if [ -f "${YUMI_CFG_FILE}" ] ; then
+  if [ -f "${APP_YUMI_LAB_CFG_FILE}" ] ; then
     if [ $OVERWRITE_CONFIG = "y" ]; then
-      backup_config_file="${YUMI_CFG_FILE}-$(date '+%Y-%m-%d')"
-      echo -e "${yellow}\n!!!WARNING: Overwriting ${YUMI_CFG_FILE}..."
-      cp  ${YUMI_CFG_FILE} ${backup_config_file}
+      backup_config_file="${APP_YUMI_LAB_CFG_FILE}-$(date '+%Y-%m-%d')"
+      echo -e "${yellow}\n!!!WARNING: Overwriting ${APP_YUMI_LAB_CFG_FILE}..."
+      cp  ${APP_YUMI_LAB_CFG_FILE} ${backup_config_file}
       echo -e "Old file moved to ${backup_config_file}\n${default}"
       return 1
     else
@@ -35,7 +35,7 @@ is_k1() {
 }
 
 create_config() {
-  if [ -z "${YUMI_SERVER}" ]; then
+  if [ -z "${APP_YUMI_LAB_SERVER}" ]; then
     print_header " Obico Server URL "
     cat <<EOF
 
@@ -53,16 +53,16 @@ EOF
         read -p "The Obico Server (Don't change unless you are linking to a self-hosted Obico Server): " -e -i "https://app.yumi-lab.com" user_input
     fi
     echo ""
-    YUMI_SERVER="${user_input%/}"
+    APP_YUMI_LAB_SERVER="${user_input%/}"
   fi
 
-  debug YUMI_SERVER: ${YUMI_SERVER}
+  debug APP_YUMI_LAB_SERVER: ${APP_YUMI_LAB_SERVER}
 
-  report_status "Creating config file ${YUMI_CFG_FILE} ..."
-  cat <<EOF > "${YUMI_CFG_FILE}"
+  report_status "Creating config file ${APP_YUMI_LAB_CFG_FILE} ..."
+  cat <<EOF > "${APP_YUMI_LAB_CFG_FILE}"
 [server]
-url = ${YUMI_SERVER}
-sentry_url = ${YUMI_SENTRY_URL:-https://3d-print-sentry.yumi-lab.com}
+url = ${APP_YUMI_LAB_SERVER}
+sentry_url = ${APP_YUMI_LAB_SENTRY_URL:-https://3d-print-sentry.yumi-lab.com}
 
 [moonraker]
 host = ${MOONRAKER_HOST}
@@ -86,7 +86,7 @@ disable_video_streaming = False
 # aspect_ratio_169 = False
 
 [logging]
-path = ${YUMI_LOG_FILE}
+path = ${APP_YUMI_LAB_LOG_FILE}
 # level = INFO
 
 [tunnel]
@@ -99,12 +99,12 @@ EOF
 }
 
 recreate_update_file() {
-  cat <<EOF > "${YUMI_UPDATE_FILE}"
-[update_manager ${YUMI_SERVICE_NAME}]
+  cat <<EOF > "${APP_YUMI_LAB_UPDATE_FILE}"
+[update_manager ${APP_YUMI_LAB_SERVICE_NAME}]
 type: git_repo
-path: ${YUMI_DIR}
-origin: ${YUMI_REPO}
-virtualenv: ${YUMI_ENV}
+path: ${APP_YUMI_LAB_DIR}
+origin: ${APP_YUMI_LAB_REPO}
+virtualenv: ${APP_YUMI_LAB_ENV}
 install_script: install.sh
 requirements: requirements.txt
 system_dependencies: system_dependencies.json
@@ -117,19 +117,19 @@ EOF
     echo "[include moonraker-yumi-update.cfg]" >> "${MOONRAKER_CONFIG_FILE}"
 	fi
 
-  "${YUMI_DIR}/scripts/ensure_include_cfgs.sh" "${MOONRAKER_CONF_DIR}/printer.cfg"
+  "${APP_YUMI_LAB_DIR}/scripts/ensure_include_cfgs.sh" "${MOONRAKER_CONF_DIR}/printer.cfg"
 }
 
 
 ensure_venv() {
-  YUMI_ENV="${YUMI_DIR}/../moonraker-yumi-env"
-  if [ ! -f "${YUMI_ENV}/bin/activate" ] ; then
+  APP_YUMI_LAB_ENV="${APP_YUMI_LAB_DIR}/../moonraker-yumi-env"
+  if [ ! -f "${APP_YUMI_LAB_ENV}/bin/activate" ] ; then
     report_status "Creating python virtual environment for moonraker-yumi..."
-    mkdir -p "${YUMI_ENV}"
+    mkdir -p "${APP_YUMI_LAB_ENV}"
     if is_k1; then
-      virtualenv -p /opt/bin/python3 --system-site-packages "${YUMI_ENV}"
+      virtualenv -p /opt/bin/python3 --system-site-packages "${APP_YUMI_LAB_ENV}"
     else
-      virtualenv -p /usr/bin/python3 --system-site-packages "${YUMI_ENV}"
+      virtualenv -p /usr/bin/python3 --system-site-packages "${APP_YUMI_LAB_ENV}"
     fi
   fi
 }
@@ -171,13 +171,13 @@ debug() {
 
 banner() {
   echo -en "${cyan}"
-  cat "${YUMI_DIR}/scripts/banner"
+  cat "${APP_YUMI_LAB_DIR}/scripts/banner"
   echo -en "${default}"
 }
 
 brand() {
   echo -en "${cyan}"
-  cat "${YUMI_DIR}/scripts/brand"
+  cat "${APP_YUMI_LAB_DIR}/scripts/brand"
   echo -en "${default}"
 }
 

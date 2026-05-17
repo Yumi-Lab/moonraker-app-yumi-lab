@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-export YUMI_DIR=$(readlink -f $(dirname "$0"))/..
+export APP_YUMI_LAB_DIR=$(readlink -f $(dirname "$0"))/..
 
-. "${YUMI_DIR}/scripts/funcs.sh"
+. "${APP_YUMI_LAB_DIR}/scripts/funcs.sh"
 
 SUFFIX=""
 KEEP_QUIET="n"
@@ -33,10 +33,10 @@ link_to_server() {
     print_header " Link Printer to Obico Server "
   fi
 
-  export YUMI_ENV # Expose YUMI_ENV to link.py so that it can print out the debugging command.
+  export APP_YUMI_LAB_ENV # Expose APP_YUMI_LAB_ENV to link.py so that it can print out the debugging command.
 
-  debug Running... PYTHONPATH="${YUMI_DIR}:${PYTHONPATH}" ${YUMI_ENV}/bin/python3 -m moonraker_obico.link -c "${YUMI_CFG_FILE}"
-  PYTHONPATH="${YUMI_DIR}:${PYTHONPATH}" ${YUMI_ENV}/bin/python3 -m moonraker_obico.link -c "${YUMI_CFG_FILE}"
+  debug Running... PYTHONPATH="${APP_YUMI_LAB_DIR}:${PYTHONPATH}" ${APP_YUMI_LAB_ENV}/bin/python3 -m moonraker_obico.link -c "${APP_YUMI_LAB_CFG_FILE}"
+  PYTHONPATH="${APP_YUMI_LAB_DIR}:${PYTHONPATH}" ${APP_YUMI_LAB_ENV}/bin/python3 -m moonraker_obico.link -c "${APP_YUMI_LAB_CFG_FILE}"
   return $?
 }
 
@@ -56,13 +56,13 @@ uninstall_instructions() {
 
 The changes we have made to your system:
 
-- System service: /etc/systemd/system/${YUMI_SERVICE_NAME}
-- Config file: ${YUMI_CFG_FILE}
-- Update file: ${YUMI_UPDATE_FILE}
+- System service: /etc/systemd/system/${APP_YUMI_LAB_SERVICE_NAME}
+- Config file: ${APP_YUMI_LAB_CFG_FILE}
+- Update file: ${APP_YUMI_LAB_UPDATE_FILE}
 - Macro file: "${MOONRAKER_CONF_DIR}/moonraker_obico_macros.cfg"
 - Inserted "[include moonraker-obico-update.cfg]" in the "moonraker.conf" file
 - Inserted "[include moonraker_obico_macros.cfg]" in the "printer.conf" file
-- Log file: ${YUMI_LOG_FILE}
+- Log file: ${APP_YUMI_LAB_LOG_FILE}
 
 To remove Moonraker-Obico, run:
 
@@ -90,7 +90,7 @@ EOF
 }
 
 prompt_for_sentry() {
-  if grep -q "sentry_opt" "${YUMI_CFG_FILE}" ; then
+  if grep -q "sentry_opt" "${APP_YUMI_LAB_CFG_FILE}" ; then
     return 0
   fi
 
@@ -104,7 +104,7 @@ prompt_for_sentry() {
 
   opt_in_upper=$(echo "$opt_in" | tr '[:lower:]' '[:upper:]')
   if [ "$opt_in_upper" = "Y" ] ; then
-    cat <<EOF >> "${YUMI_CFG_FILE}"
+    cat <<EOF >> "${APP_YUMI_LAB_CFG_FILE}"
 
 [misc]
 sentry_opt: in
@@ -115,7 +115,7 @@ EOF
 while getopts "hqc:n:dS" arg; do
     case $arg in
         h) usage && exit 0;;
-        c) YUMI_CFG_FILE=${OPTARG};;
+        c) APP_YUMI_LAB_CFG_FILE=${OPTARG};;
         n) SUFFIX="-${OPTARG}";;
         q) KEEP_QUIET="y";;
         d) DEBUG="y";;
@@ -125,19 +125,19 @@ while getopts "hqc:n:dS" arg; do
 done
 
 if [ -z "${SUFFIX}" ] || [ "${SUFFIX}" == '-' ]; then
-  YUMI_SERVICE_NAME="moonraker-yumi"
+  APP_YUMI_LAB_SERVICE_NAME="moonraker-yumi"
 else
-  YUMI_SERVICE_NAME="moonraker-yumi${SUFFIX}"
+  APP_YUMI_LAB_SERVICE_NAME="moonraker-yumi${SUFFIX}"
 fi
 
-if [ -z "${YUMI_CFG_FILE}" ]; then
+if [ -z "${APP_YUMI_LAB_CFG_FILE}" ]; then
   usage && exit 1
 fi
 
 ensure_venv
 
 if [ $STOP_SYSTEM_SERVICE == "y" ]; then
-  sudo systemctl stop "${YUMI_SERVICE_NAME}" 2>/dev/null || true
+  sudo systemctl stop "${APP_YUMI_LAB_SERVICE_NAME}" 2>/dev/null || true
 fi
 
 link_to_server
@@ -145,7 +145,7 @@ link_exit_code=$?
 debug link_to_server exited with $link_exit_code
 
 if [ $STOP_SYSTEM_SERVICE == "y" ]; then
-  sudo systemctl restart "${YUMI_SERVICE_NAME}"
+  sudo systemctl restart "${APP_YUMI_LAB_SERVICE_NAME}"
 fi
 
 if [ ! $KEEP_QUIET = "y" ]; then

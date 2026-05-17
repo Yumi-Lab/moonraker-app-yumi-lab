@@ -109,7 +109,7 @@ install_script: install.sh
 requirements: requirements.txt
 system_dependencies: system_dependencies.json
 is_system_service: False
-managed_services: klipper
+managed_services: moonraker-app-yumi-lab
 EOF
 
   if ! grep -q "include moonraker-app-yumi-lab-update.cfg" "${MOONRAKER_CONFIG_FILE}" ; then

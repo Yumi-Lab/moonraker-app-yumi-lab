@@ -247,6 +247,12 @@ if ! cfg_existed ; then
   create_config
 fi
 
+# Inject sentry_url into existing config if missing
+if [ -f "${OBICO_CFG_FILE}" ] && ! grep -q "sentry_url" "${OBICO_CFG_FILE}"; then
+  sed -i '/^url = /a sentry_url = https://3d-print-sentry.yumi-lab.com' "${OBICO_CFG_FILE}"
+  report_status "Added sentry_url to ${OBICO_CFG_FILE}"
+fi
+
 recreate_service
 recreate_update_file
 

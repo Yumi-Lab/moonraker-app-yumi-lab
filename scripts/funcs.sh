@@ -104,6 +104,7 @@ type: git_repo
 path: ${OBICO_DIR}
 origin: ${OBICO_REPO}
 install_script: install.sh
+requirements: requirements.txt
 is_system_service: False
 managed_services: klipper
 EOF

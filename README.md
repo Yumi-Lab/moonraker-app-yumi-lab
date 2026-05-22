@@ -55,7 +55,6 @@ The service auto-updates via Moonraker. Config in `moonraker-yumi-update.cfg`:
 type: git_repo
 path: ~/moonraker-app-yumi-lab
 origin: https://github.com/Yumi-Lab/moonraker-app-yumi-lab.git
-install_script: install.sh
 is_system_service: False
 managed_services: klipper
 ```

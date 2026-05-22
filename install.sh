@@ -134,7 +134,17 @@ EOF
   sudo systemctl daemon-reload
 }
 
+fix_legacy_install_script() {
+  # Remove deprecated install_script line from update_manager config
+  local update_cfg="${HOME}/printer_data/config/moonraker-app-yumi-lab-update.cfg"
+  if [[ -f "${update_cfg}" ]] && grep -q '^install_script:' "${update_cfg}"; then
+    sed -i '/^install_script:/d' "${update_cfg}"
+    echo "Fixed legacy install_script in ${update_cfg}"
+  fi
+}
+
 update() {
+  fix_legacy_install_script
   ensure_deps
 }
 
@@ -254,6 +264,7 @@ if [ -f "${APP_YUMI_LAB_CFG_FILE}" ] && ! grep -q "sentry_url" "${APP_YUMI_LAB_C
 fi
 
 recreate_service
+fix_legacy_install_script
 recreate_update_file
 
 if "${APP_YUMI_LAB_DIR}/scripts/migrated_from_tsd.sh" "${MOONRAKER_CONF_DIR}" "${APP_YUMI_LAB_ENV}"; then

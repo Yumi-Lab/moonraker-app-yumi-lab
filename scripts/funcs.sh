@@ -105,7 +105,6 @@ type: git_repo
 path: ${APP_YUMI_LAB_DIR}
 origin: ${APP_YUMI_LAB_REPO}
 virtualenv: ${APP_YUMI_LAB_ENV}
-install_script: install.sh
 requirements: requirements.txt
 system_dependencies: system_dependencies.json
 is_system_service: False

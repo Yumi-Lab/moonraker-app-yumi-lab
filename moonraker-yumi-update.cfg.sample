@@ -4,7 +4,6 @@ path: ~/moonraker-obico
 origin: https://github.com/TheSpaghettiDetective/moonraker-obico.git
 env: ~/moonraker-obico-env/bin/python
 requirements: requirements.txt
-install_script: install.sh
 managed_services:
   moonraker-obico
 

@@ -7,6 +7,7 @@ import pathlib
 
 from .config import Config
 from .version import VERSION
+from .printer_discovery import get_mac_address, mac_to_hexid
 
 class PrinterState:
     STATE_OFFLINE = 'Offline'
@@ -151,6 +152,12 @@ class PrinterState:
                     data['settings']['platform_uname'].append(model)
                 except:
                     data['settings']['platform_uname'].append('')
+
+                # Optional device identifiers (non-breaking for older pads)
+                mac = get_mac_address()
+                if mac:
+                    data['settings']['mac_address'] = mac
+                    data['settings']['pad_id'] = mac_to_hexid(mac)
             return data
 
     def to_status(self) -> Dict:

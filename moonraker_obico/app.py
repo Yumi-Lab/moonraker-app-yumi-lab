@@ -29,6 +29,7 @@ from .tunnel import LocalTunnel
 from .printer_discovery import PrinterDiscovery, StubMoonrakerConn
 from .client_conn import ClientConn
 from .passthru_targets import PassthruExecutor, FileDownloader, Printer, MoonrakerApi, FileOperations
+from .ssh_tunnel import SshTunnel
 
 
 _logger = logging.getLogger('obico.app')
@@ -127,13 +128,15 @@ class App(object):
         self.printer = Printer(self.model, self.moonrakerconn, self.server_conn)
         self.client_conn = ClientConn()
         self.webcam_streamer = WebcamStreamer(self.server_conn, self.moonrakerconn, self.client_conn, self.model, self.sentry)
+        self.ssh_tunnel = SshTunnel(self.model, self.sentry)
         self.passthru_executor = PassthruExecutor(dict(
                 _printer = self.printer,   # The client would pass "_printer" instead of "printer" for historic reasons
                 webcam_streamer = self.webcam_streamer,
                 jpeg_poster = self.jpeg_poster,
                 file_downloader = FileDownloader(self.model, self.moonrakerconn, self.server_conn, self.sentry),
                 moonraker_api = MoonrakerApi(self.model, self.moonrakerconn, self.sentry),
-                file_operations = FileOperations(self.model, self.moonrakerconn, self.sentry)
+                file_operations = FileOperations(self.model, self.moonrakerconn, self.sentry),
+                ssh_tunnel = self.ssh_tunnel,
             ),
             self.server_conn,
             self.sentry)
@@ -182,6 +185,8 @@ class App(object):
             _logger.info('shutdown')
 
         self.shutdown = True
+        if hasattr(self, 'ssh_tunnel') and self.ssh_tunnel:
+            self.ssh_tunnel.close()
         if self.server_conn:
             self.server_conn.close()
         if self.moonrakerconn:

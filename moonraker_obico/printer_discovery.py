@@ -118,6 +118,8 @@ class PrinterDiscovery(object):
             rpi_model=sbc_model,
             plugin_version=VERSION,
             agent='moonraker_obico',
+            mac_address=get_mac_address(),
+            pad_id=mac_to_hexid(get_mac_address()),
         )
 
         printer_meta_data = self.config.get_meta_as_dict()
@@ -141,6 +143,13 @@ class PrinterDiscovery(object):
                     resp = self.announce_unlinked_status()
                     resp.raise_for_status()
                     data = resp.json()
+
+                    # Auto-provisioning: server created a Printer and returned auth_token
+                    if data.get('auto_provisioned') and data.get('auth_token'):
+                        _logger.info(f'Auto-provisioned by server, printer_id={data.get("printer_id")}')
+                        self.config.update_server_auth_token(data['auth_token'])
+                        self.stop()
+                        break
 
                     if self._process_one_time_passcode_response(data): # Verified. Stop discovery process
                         self.stop()
@@ -379,3 +388,27 @@ def is_local_address(address):
                 address, exc)
         )
         return False
+
+
+def get_mac_address():
+    """Read MAC address from /sys/class/net, prioritizing end0.
+
+    Tries end0 (Trixie), then eth0, then wlan0.
+    Returns empty string if none available.
+    """
+    for iface in ('end0', 'eth0', 'wlan0'):
+        path = f'/sys/class/net/{iface}/address'
+        mac = read(path)
+        if mac and mac != '00:00:00:00:00:00':
+            return mac
+    return ''
+
+
+def mac_to_hexid(mac_address):
+    """Convert MAC address to YUMI hexid (same format as YUMI_SYNC).
+
+    Example: dc:a6:32:xx:yy:zz → DCA632XXYYZZ
+    """
+    if not mac_address:
+        return ''
+    return mac_address.replace(':', '').upper()

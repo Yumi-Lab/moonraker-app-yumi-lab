@@ -66,10 +66,8 @@ class SshTunnel:
                 remote_port = port
                 server_host = self._server_host
 
-                # autossh with no monitoring port (-M 0), relies on ServerAliveInterval
                 cmd = [
-                    '/usr/bin/autossh',
-                    '-M', '0',
+                    '/usr/bin/ssh',
                     '-N',
                     '-i', SAV_SSH_KEY_PATH,
                     '-o', 'StrictHostKeyChecking=no',
@@ -109,7 +107,7 @@ class SshTunnel:
                 }, None
 
             except FileNotFoundError:
-                return None, 'autossh not installed on this device'
+                return None, 'ssh not found on this device'
             except Exception as e:
                 self.sentry.captureException()
                 return None, str(e)

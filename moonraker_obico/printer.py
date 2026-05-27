@@ -4,6 +4,7 @@ from typing import Optional, Dict, Any
 import threading
 import time
 import pathlib
+import requests
 
 from .config import Config
 from .version import VERSION
@@ -152,6 +153,19 @@ class PrinterState:
                     data['settings']['platform_uname'].append(model)
                 except:
                     data['settings']['platform_uname'].append('')
+
+                # Printer name from Mainsail DB (stored on pad, not on server)
+                try:
+                    r = requests.get(
+                        f'http://{self.config.moonraker.host}:{self.config.moonraker.port}/server/database/item',
+                        params={'namespace': 'mainsail', 'key': 'general.printername'},
+                        timeout=3,
+                    )
+                    printer_name = r.json().get('result', {}).get('value')
+                    if printer_name:
+                        data['settings']['printer_name'] = printer_name
+                except:
+                    pass
 
                 # Optional device identifiers (non-breaking for older pads)
                 mac = get_mac_address()

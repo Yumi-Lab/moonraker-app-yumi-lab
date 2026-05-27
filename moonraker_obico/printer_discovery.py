@@ -8,6 +8,8 @@ import socket
 import requests
 from threading import Lock
 from requests.exceptions import HTTPError
+
+from .device_info import get_mac_address as _get_mac_address, mac_to_hexid as _mac_to_hexid
 import random
 import string
 import flask
@@ -118,8 +120,8 @@ class PrinterDiscovery(object):
             rpi_model=sbc_model,
             plugin_version=VERSION,
             agent='moonraker_obico',
-            mac_address=get_mac_address(),
-            pad_id=mac_to_hexid(get_mac_address()),
+            mac_address=_get_mac_address(),
+            pad_id=_mac_to_hexid(_get_mac_address()),
         )
 
         printer_meta_data = self.config.get_meta_as_dict()

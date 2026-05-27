@@ -7,7 +7,7 @@ import pathlib
 
 from .config import Config
 from .version import VERSION
-from .printer_discovery import get_mac_address, mac_to_hexid
+from .device_info import get_mac_address, mac_to_hexid
 
 class PrinterState:
     STATE_OFFLINE = 'Offline'

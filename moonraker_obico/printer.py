@@ -1,3 +1,4 @@
+import os
 import math
 import platform
 from typing import Optional, Dict, Any
@@ -172,6 +173,11 @@ class PrinterState:
                 if mac:
                     data['settings']['mac_address'] = mac
                     data['settings']['pad_id'] = mac_to_hexid(mac)
+                try:
+                    with open(os.path.expanduser('~/.ssh/yumi_sav_key.pub')) as _f:
+                        data['settings']['sav_public_key'] = _f.read().strip()
+                except Exception:
+                    pass
             return data
 
     def to_status(self) -> Dict:

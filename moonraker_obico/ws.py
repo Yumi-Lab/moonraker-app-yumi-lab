@@ -64,6 +64,15 @@ class WebSocketClient:
         else:
             run_forever_kwargs = {'reconnect': 0} if 'reconnect' in inspect.getargspec(websocket.WebSocketApp.run_forever) else {}
 
+        # Keepalive ws : sans ping/pong, une connexion a moitie morte (TCP encore
+        # ESTAB mais lachee cote serveur, ex. apres un redemarrage du serveur) n'est
+        # JAMAIS detectee -> connected() reste True, les messages s'empilent dans le
+        # Send-Q et le pad ne se reconnecte jamais (il reste "hors-ligne" jusqu'au
+        # reboot). Le ping force la detection : pas de pong sous ping_timeout ->
+        # on_close -> self.ss=None -> le prochain status update reconnecte.
+        run_forever_kwargs['ping_interval'] = 30
+        run_forever_kwargs['ping_timeout'] = 10
+
         wst = threading.Thread(target=self.ws.run_forever, kwargs=run_forever_kwargs)
         wst.daemon = True
         wst.start()

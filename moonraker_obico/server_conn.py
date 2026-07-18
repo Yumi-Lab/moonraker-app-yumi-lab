@@ -1,6 +1,7 @@
 from typing import Optional, Dict, List, Tuple
 import requests  # type: ignore
 import logging
+import os
 import time
 import queue
 import bson
@@ -48,6 +49,21 @@ class ServerConn:
             if close_status_code == 4321:
                 _logger.warning('Shared auth_token detected. Shutting down.')
                 self.should_reconnect = False
+            elif close_status_code == 4322:
+                # Clone detecte cote serveur : ce auth_token est deja lie a une
+                # AUTRE MAC (carte SD clonee partageant le token). On efface le
+                # token -> au redemarrage (Restart=always) l'agent se re-onboarde
+                # et l'auto-provision serveur (par pad_id/MAC) lui donne une
+                # identite UNIQUE. Un pad legitime a toujours SA MAC -> ne recoit
+                # jamais 4322, donc jamais reinitialise.
+                _logger.warning('Clone detected (auth_token bound to another device). Clearing token to re-provision a unique identity.')
+                self.should_reconnect = False
+                try:
+                    self.config.update_server_auth_token('')
+                    _logger.warning('auth_token cleared; restarting to re-onboard.')
+                except Exception as e:
+                    _logger.error('Failed to clear auth_token for re-provision: %s', e)
+                os._exit(1)
 
         def on_server_ws_open(ws):
             self.post_status_update_to_server(with_settings=True) # Make sure an update is sent asap so that the server can rely on the availability of essential info such as agent.version
